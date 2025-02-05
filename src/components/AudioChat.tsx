@@ -43,7 +43,7 @@ export default function AudioChat() {
     <div className="flex flex-col space-y-4 p-4 bg-white rounded-lg shadow-md">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Brain className="w-6 h-6 text-purple-600" />
+          <Brain className="w-6 h-6 text-blue-600" />
           <h2 className="text-xl font-semibold">Voice Chat</h2>
         </div>
         <button
@@ -51,7 +51,7 @@ export default function AudioChat() {
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
             isActive
               ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-purple-600 hover:bg-purple-700 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
         >
           {isActive ? (
@@ -82,9 +82,9 @@ export default function AudioChat() {
       {isActive && (
         <div className="flex items-center justify-center">
           <div className="flex space-x-2">
-            <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse" />
-            <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-75" />
-            <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-150" />
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-75" />
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-150" />
           </div>
         </div>
       )}

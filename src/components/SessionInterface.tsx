@@ -208,7 +208,7 @@ export default function SessionInterface({ counselor, onEndSession }: SessionInt
                   </div>
                   <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-purple-600 transition-all"
+                      className="h-full bg-blue-600 transition-all"
                       style={{ width: `${Math.min((sessionTime / 3600) * 100, 100)}%` }}
                     />
                   </div>

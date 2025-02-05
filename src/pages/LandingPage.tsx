@@ -6,18 +6,18 @@ export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Header */}
       <header className="fixed w-full bg-white/80 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <Brain className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">ArtiAID</span>
+              <Brain className="h-8 w-8 text-blue-600" />
+              <span className="text-2xl font-bold text-gray-900">Artiaid</span>
             </div>
             <button
               onClick={() => setShowLogin(true)}
-              className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Get Started
             </button>
@@ -31,14 +31,14 @@ export default function LandingPage() {
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               Your Personal AI{' '}
-              <span className="text-purple-600">Counselor</span>
+              <span className="text-blue-600">Counselor</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Experience compassionate, intelligent counseling powered by advanced AI. Available 24/7 to support your mental well-being journey.
             </p>
             <button
               onClick={() => setShowLogin(true)}
-              className="bg-purple-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
             >
               Start Your Journey
             </button>
@@ -51,8 +51,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Text Chat</h3>
               <p className="text-gray-600">
@@ -60,8 +60,8 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mic className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mic className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Voice Interaction</h3>
               <p className="text-gray-600">
@@ -69,8 +69,8 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Private & Secure</h3>
               <p className="text-gray-600">

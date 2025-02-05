@@ -27,9 +27,9 @@ export default function DashboardOverview({ session }: DashboardOverviewProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-purple-50 rounded-lg p-4 flex items-center space-x-4">
-          <div className="bg-purple-100 p-2 rounded-lg">
-            <Calendar className="w-6 h-6 text-purple-600" />
+        <div className="bg-blue-50 rounded-lg p-4 flex items-center space-x-4">
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <Calendar className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <p className="text-sm text-gray-600">Last Session</p>
@@ -37,9 +37,9 @@ export default function DashboardOverview({ session }: DashboardOverviewProps) {
           </div>
         </div>
 
-        <div className="bg-purple-50 rounded-lg p-4 flex items-center space-x-4">
-          <div className="bg-purple-100 p-2 rounded-lg">
-            <Activity className="w-6 h-6 text-purple-600" />
+        <div className="bg-blue-50 rounded-lg p-4 flex items-center space-x-4">
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <Activity className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <p className="text-sm text-gray-600">Total Sessions</p>
@@ -47,9 +47,9 @@ export default function DashboardOverview({ session }: DashboardOverviewProps) {
           </div>
         </div>
 
-        <div className="bg-purple-50 rounded-lg p-4 flex items-center space-x-4">
-          <div className="bg-purple-100 p-2 rounded-lg">
-            <Clock className="w-6 h-6 text-purple-600" />
+        <div className="bg-blue-50 rounded-lg p-4 flex items-center space-x-4">
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <Clock className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <p className="text-sm text-gray-600">Total Time</p>

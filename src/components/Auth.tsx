@@ -33,7 +33,7 @@ export default function Auth() {
     <div className="w-full space-y-6">
       <div className="text-center">
         <div className="flex justify-center">
-          <Brain className="h-12 w-12 text-purple-600" />
+          <Brain className="h-12 w-12 text-blue-600" />
         </div>
         <h2 className="mt-4 text-2xl font-bold text-gray-900">
           {isSignUp ? 'Create your account' : 'Welcome back'}
@@ -83,7 +83,7 @@ export default function Auth() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
         </button>
@@ -92,7 +92,7 @@ export default function Auth() {
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-purple-600 hover:text-purple-500"
+            className="text-sm text-blue-600 hover:text-blue-500"
           >
             {isSignUp
               ? 'Already have an account? Sign in'

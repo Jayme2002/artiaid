@@ -32,25 +32,25 @@ export default function Dashboard({ session }: DashboardProps) {
       <header className="bg-white border-b px-4 py-3 fixed top-0 w-full z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-purple-600">ArtiAID</h1>
+            <h1 className="text-xl font-bold text-blue-600">Artiaid</h1>
             <span className="text-sm text-gray-500">Your AI Counselor</span>
           </div>
           <div className="flex items-center space-x-4">
             <button
-              className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
+              className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-blue-50"
               onClick={() => window.open('/resources', '_blank')}
             >
               <AlertCircle className="w-5 h-5" />
             </button>
             <button
-              className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
+              className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-blue-50"
               onClick={() => {/* Implement settings */}}
             >
               <Settings className="w-5 h-5" />
             </button>
             <button
               onClick={handleSignOut}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100"
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-blue-50"
             >
               <LogOut className="w-5 h-5" />
             </button>

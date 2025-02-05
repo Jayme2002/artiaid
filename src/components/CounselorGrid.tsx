@@ -171,7 +171,7 @@ export default function CounselorGrid({ onSelectCounselor }: CounselorGridProps)
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
                 <button
                   onClick={() => onSelectCounselor(counselor)}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity transform hover:scale-105"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity transform hover:scale-105"
                 >
                   Begin Session
                 </button>
@@ -180,14 +180,14 @@ export default function CounselorGrid({ onSelectCounselor }: CounselorGridProps)
             <div className="p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">{counselor.name}</h3>
-                <span className="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded-full">
+                <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
                   {counselor.specialty}
                 </span>
               </div>
               <p className="text-sm text-gray-600">{counselor.description}</p>
               <div className="flex items-center space-x-2">
                 <button
-                  className="text-purple-600 text-sm flex items-center space-x-1"
+                  className="text-blue-600 text-sm flex items-center space-x-1"
                   onClick={() => {/* Implement voice sample playback */}}
                 >
                   <Play className="w-4 h-4" />

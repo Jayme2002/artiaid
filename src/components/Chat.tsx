@@ -36,7 +36,7 @@ export default function Chat() {
       const response = await getChatCompletion([
         {
           role: 'system',
-          content: 'You are ArtiAID, a compassionate and understanding AI counselor. Provide supportive, empathetic responses while maintaining professional boundaries. Focus on active listening and asking thoughtful questions to help users explore their feelings and situations.',
+          content: 'You are Artiaid, a compassionate and understanding AI counselor. Provide supportive, empathetic responses while maintaining professional boundaries. Focus on active listening and asking thoughtful questions to help users explore their feelings and situations.',
         },
         ...messages,
         userMessage,
@@ -74,9 +74,9 @@ export default function Chat() {
               }`}
             >
               {message.role === 'assistant' && (
-                <div className="flex items-center mb-2 text-purple-600">
+                <div className="flex items-center mb-2 text-blue-600">
                   <Bot className="w-5 h-5 mr-2" />
-                  <span className="font-medium">ArtiAID</span>
+                  <span className="font-medium">Artiaid</span>
                 </div>
               )}
               <ReactMarkdown className="prose prose-sm max-w-none">
@@ -89,9 +89,9 @@ export default function Chat() {
           <div className="flex justify-start">
             <div className="bg-white rounded-lg p-4 shadow-md">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function Chat() {
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+          className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
           <Send className="w-5 h-5" />
         </button>
