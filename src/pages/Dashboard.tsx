@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Download, Settings, Phone, AlertCircle } from 'lucide-react';
+import { Settings, AlertCircle, UserCircle, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import CounselorGrid from '../components/CounselorGrid';
 import SessionInterface from '../components/SessionInterface';
@@ -12,6 +12,7 @@ interface DashboardProps {
 export default function Dashboard({ session }: DashboardProps) {
   const [activeSession, setActiveSession] = useState(false);
   const [selectedCounselor, setSelectedCounselor] = useState<any>(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -42,18 +43,33 @@ export default function Dashboard({ session }: DashboardProps) {
             >
               <AlertCircle className="w-5 h-5" />
             </button>
-            <button
-              className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-blue-50"
-              onClick={() => {/* Implement settings */}}
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-blue-50"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-blue-50 focus:outline-none"
+              >
+                <UserCircle className="w-6 h-6" />
+              </button>
+              
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border">
+                  <button
+                    onClick={() => {/* Implement settings */}}
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Settings</span>
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign out</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -63,6 +79,7 @@ export default function Dashboard({ session }: DashboardProps) {
           <SessionInterface
             counselor={selectedCounselor}
             onEndSession={endSession}
+            session={session}
           />
         ) : (
           <div className="space-y-8 py-8">

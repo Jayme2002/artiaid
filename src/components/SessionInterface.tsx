@@ -2,37 +2,57 @@ import React, { useState, useEffect } from 'react';
 import { X, Download, UserPlus, Settings, Phone, AlertCircle } from 'lucide-react';
 import { RealtimeChat } from '../lib/realtime';
 import { counselorPrompts } from '../lib/counselorPrompts';
+import { supabase } from '../lib/supabase';
 
 interface SessionInterfaceProps {
   counselor: any;
   onEndSession: () => void;
+  session: any;
 }
 
-export default function SessionInterface({ counselor, onEndSession }: SessionInterfaceProps) {
-  const [sessionTime, setSessionTime] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
+export default function SessionInterface({ counselor, onEndSession, session }: SessionInterfaceProps) {
+  const [isActive, setIsActive] = useState(false);
   const [realtimeChat, setRealtimeChat] = useState<RealtimeChat | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (!isPaused && realtimeChat) { // Only run timer when chat is active
-      interval = setInterval(() => {
-        setSessionTime((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPaused, realtimeChat]);
+    const startSession = async () => {
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert({
+          user_id: session.user.id,
+          counselor_name: counselor.name,
+          started_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+      if (error) {
+        console.error('Error starting session:', error);
+        return;
+      }
 
-  const handleMessage = (event: any) => {
+      setSessionId(data.id);
+    };
+
+    startSession();
+  }, [counselor.name, session.user.id]);
+
+  const handleMessage = async (event: any) => {
     if (event.type === 'text') {
       setMessages(prev => [...prev, { type: 'assistant', content: event.text, timestamp: new Date() }]);
+      
+      // Save message to database
+      if (sessionId) {
+        await supabase
+          .from('chat_messages')
+          .insert({
+            session_id: sessionId,
+            role: 'assistant',
+            content: event.text,
+          });
+      }
     }
   };
 
@@ -60,6 +80,22 @@ export default function SessionInterface({ counselor, onEndSession }: SessionInt
   const stopChat = () => {
     realtimeChat?.stop();
     setRealtimeChat(null);
+  };
+
+  const endCurrentSession = async () => {
+    if (sessionId) {
+      const endTime = new Date();
+      await supabase
+        .from('sessions')
+        .update({
+          ended_at: endTime.toISOString(),
+          duration: `${Math.floor((endTime.getTime() - new Date(messages[0]?.timestamp).getTime()) / 1000)} seconds`
+        })
+        .eq('id', sessionId);
+    }
+    
+    stopChat();
+    onEndSession();
   };
 
   const downloadChatLog = () => {
@@ -93,7 +129,7 @@ export default function SessionInterface({ counselor, onEndSession }: SessionInt
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">
-              {realtimeChat ? `Session Time: ${formatTime(sessionTime)}` : 'Click Start Voice to begin'}
+              {realtimeChat ? 'Session Active' : 'Click Start Voice to begin'}
             </span>
           </div>
         </div>
@@ -126,10 +162,10 @@ export default function SessionInterface({ counselor, onEndSession }: SessionInt
           <div className="flex items-center space-x-4">
             {realtimeChat && (
               <button
-                onClick={() => setIsPaused(!isPaused)}
+                onClick={() => setIsActive(!isActive)}
                 className="px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg"
               >
-                {isPaused ? 'Resume' : 'Pause'}
+                {isActive ? 'Pause' : 'Resume'}
               </button>
             )}
             <button
@@ -140,7 +176,7 @@ export default function SessionInterface({ counselor, onEndSession }: SessionInt
               <Download className="w-5 h-5" />
             </button>
             <button
-              onClick={onEndSession}
+              onClick={endCurrentSession}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
               title="End Session"
             >
@@ -199,18 +235,12 @@ export default function SessionInterface({ counselor, onEndSession }: SessionInt
 
           {realtimeChat && (
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Session Progress</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Session Status</h3>
               <div className="bg-white p-4 rounded-lg">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Duration</span>
-                    <span>{formatTime(sessionTime)}</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-600 transition-all"
-                      style={{ width: `${Math.min((sessionTime / 3600) * 100, 100)}%` }}
-                    />
+                    <span>Status</span>
+                    <span>{isActive ? 'Active' : 'Paused'}</span>
                   </div>
                 </div>
               </div>

@@ -1,25 +1,73 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, Calendar, Activity } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface DashboardOverviewProps {
   session: any;
 }
 
 export default function DashboardOverview({ session }: DashboardOverviewProps) {
-  const userEmail = session?.user?.email || '';
-  const userName = userEmail.split('@')[0];
+  const firstName = session?.user?.user_metadata?.first_name || 'there';
+  const [metrics, setMetrics] = useState({
+    lastSession: 'No sessions yet',
+    totalSessions: 0,
+    totalTime: '0 hours'
+  });
 
-  const metrics = {
-    lastSession: '2024-03-15 14:30',
-    totalSessions: 12,
-    totalTime: '18.5 hours'
-  };
+  useEffect(() => {
+    const fetchSessionMetrics = async () => {
+      // Get total sessions count
+      const { count } = await supabase
+        .from('sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id);
+
+      // Get last session
+      const { data: lastSession } = await supabase
+        .from('sessions')
+        .select('started_at')
+        .eq('user_id', session.user.id)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Get total duration
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('duration')
+        .eq('user_id', session.user.id);
+
+      let totalSeconds = 0;
+      sessions?.forEach(session => {
+        if (session.duration) {
+          // Parse the interval string to seconds
+          const durationMatch = session.duration.match(/(\d+) seconds/);
+          if (durationMatch) {
+            totalSeconds += parseInt(durationMatch[1]);
+          }
+        }
+      });
+
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+      setMetrics({
+        lastSession: lastSession ? new Date(lastSession.started_at).toLocaleString() : 'No sessions yet',
+        totalSessions: count || 0,
+        totalTime: `${hours}h ${minutes}m`
+      });
+    };
+
+    if (session?.user?.id) {
+      fetchSessionMetrics();
+    }
+  }, [session?.user?.id]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-900">
-          Welcome back, {userName}
+          Welcome back, {firstName}
         </h2>
         <p className="text-gray-600">
           Your safe space for growth and support
