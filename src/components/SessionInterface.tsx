@@ -117,6 +117,24 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
   };
 
   const handleMessage = async (event: any) => {
+    console.log('Received message event:', event);
+    
+    if (event.type === 'error') {
+      setError(event.error || 'An error occurred with the voice connection');
+      setIsActive(false);
+      setIsProcessing(false);
+      return;
+    }
+    
+    if (event.type === 'connection' && event.status === 'connected') {
+      console.log('Connection established successfully');
+    }
+    
+    if (event.type === 'datachannel' && event.status === 'open') {
+      console.log('Data channel ready to send messages');
+      // We don't need to send the initial message here since we're doing it in the onopen handler
+    }
+    
     if (event.type === 'text') {
       const newMessage: Message = {
         type: 'assistant',
@@ -144,28 +162,40 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
   const startChat = async () => {
     try {
       setError(null);
+      setIsProcessing(true);
       
+      console.log('Checking microphone permissions...');
       const hasPermission = await checkMicrophonePermission();
       if (!hasPermission) {
         setError('Microphone access is required. Please allow microphone access and try again.');
+        setIsProcessing(false);
         return;
       }
 
+      console.log('Starting voice chat with counselor:', counselor.name);
+      console.log('Using counselor system prompt:', counselor.system_prompt);
       const chat = new RealtimeChat();
-      await chat.start(handleMessage, counselor.voice.toLowerCase());
+      
+      // Attach the event handler before starting the connection
       setRealtimeChat(chat);
+      
+      // Start the connection with the selected voice and pass the system prompt
+      await chat.start(
+        handleMessage, 
+        counselor.voice.toLowerCase(),
+        counselor.system_prompt
+      );
+      
+      // Update UI state to show active connection
       setIsActive(true);
-
-      chat.sendMessage({
-        type: "response.create",
-        response: {
-          modalities: ["text", "audio"],
-          instructions: counselor.system_prompt,
-        },
-      });
+      
+      // No need to send the initial message here since it's now sent
+      // in the data channel onopen handler with the correct system prompt
     } catch (error) {
       console.error('Failed to start chat:', error);
-      setError('Unable to start voice chat. Please ensure you have a working microphone connected.');
+      setError('Unable to start voice chat: ' + (error.message || 'Please ensure you have a working microphone connected.'));
+      setIsProcessing(false);
+      setIsActive(false);
     }
   };
 
