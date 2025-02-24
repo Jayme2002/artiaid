@@ -11,15 +11,108 @@ export class RealtimeChat {
   private connectionState: string = 'disconnected';
   private systemPrompt: string = '';
   private counselorName: string = '';
+  private isPaused: boolean = false;
 
   constructor() {
     // Create the audio element and explicitly add it to the DOM
     this.audioElement = document.createElement('audio');
     this.audioElement.autoplay = true;
-    // Make the audio element visible during development for easier debugging
-    this.audioElement.controls = true;
+    
+    // Make the audio element hidden (we'll visualize it instead)
+    this.audioElement.style.display = 'none';
     document.body.appendChild(this.audioElement);
     console.log('Audio element created and added to DOM', this.audioElement);
+  }
+
+  // Add a getter for the audio element
+  getAudioElement(): HTMLAudioElement | null {
+    return this.audioElement;
+  }
+
+  // Add a getter for the media stream
+  getMediaStream(): MediaStream | null {
+    return this.mediaStream;
+  }
+
+  // Add a getter for the pause state
+  isPausedState(): boolean {
+    return this.isPaused;
+  }
+
+  // Implement pauseProcessing method to pause the session
+  pauseProcessing(): void {
+    console.log('Pausing realtime session processing');
+    this.isPaused = true;
+
+    // Disable all audio tracks - this prevents the microphone from capturing input
+    if (this.mediaStream) {
+      this.mediaStream.getAudioTracks().forEach(track => {
+        console.log('Disabling track:', track.id);
+        track.enabled = false;
+      });
+    }
+
+    // DO NOT send any control messages that might break the WebRTC connection
+  }
+
+  // Implement resumeProcessing method to resume the session
+  resumeProcessing(): void {
+    console.log('Resuming realtime session processing');
+    this.isPaused = false;
+
+    // Re-enable all audio tracks
+    if (this.mediaStream) {
+      this.mediaStream.getAudioTracks().forEach(track => {
+        console.log('Re-enabling track:', track.id);
+        track.enabled = true;
+      });
+    }
+
+    // DO NOT send any control messages that might break the WebRTC connection
+  }
+
+  // Implement method to close the connection
+  closeConnection(): void {
+    console.log('Explicitly closing WebRTC connection');
+    
+    // Send goodbye message if possible
+    if (this.dc && this.dc.readyState === 'open') {
+      try {
+        this.sendMessage({
+          type: "session.update",
+          session: {
+            turn_detection: {
+              enabled: false
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Error sending goodbye message:', e);
+      }
+    }
+    
+    // Close connections
+    if (this.dc) {
+      try {
+        this.dc.close();
+      } catch (e) {
+        console.error('Error closing data channel:', e);
+      }
+    }
+    
+    if (this.pc) {
+      try {
+        this.pc.close();
+      } catch (e) {
+        console.error('Error closing peer connection:', e);
+      }
+    }
+  }
+
+  // Implementation for sendControlMessage for the SessionInterface to use
+  sendControlMessage(message: any): void {
+    console.log('Sending control message:', message);
+    this.sendMessage(message);
   }
 
   async getEphemeralToken(voiceId: string) {
@@ -219,7 +312,7 @@ export class RealtimeChat {
       await this.pc?.setRemoteDescription(answer);
       console.log('WebRTC setup complete - waiting for connection to be established');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting realtime chat:', error);
       if (this.onMessageCallback) {
         this.onMessageCallback({ 
@@ -255,6 +348,7 @@ export class RealtimeChat {
     this.pc = null;
     this.dc = null;
     this.mediaStream = null;
+    this.isPaused = false;
     
     if (this.audioElement) {
       console.log('Cleaning up audio element');
@@ -263,6 +357,12 @@ export class RealtimeChat {
   }
 
   sendMessage(message: any) {
+    // Skip regular messages when paused (except session.update messages which are control messages)
+    if (this.isPaused && message.type !== "session.update") {
+      console.log('Session is paused, not sending message:', message);
+      return;
+    }
+    
     if (!this.dc) {
       console.error('Cannot send message: Data channel not initialized');
       return;
