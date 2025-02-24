@@ -88,10 +88,10 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
       console.log('Session created in database with ID:', data.id);
       setSessionId(data.id);
 
-      // Add welcome message
+      // Simplified welcome message
       const welcomeMessage: Message = {
         type: 'assistant',
-        content: `Hello! I'm ${counselor.name}, your AI counselor specializing in ${counselor.specialty}. How are you feeling today?`,
+        content: `Hello! I'm ${counselor.name}. How can I help you today?`,
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);

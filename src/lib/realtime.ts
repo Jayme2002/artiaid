@@ -10,6 +10,7 @@ export class RealtimeChat {
   private onMessageCallback: ((event: any) => void) | null = null;
   private connectionState: string = 'disconnected';
   private systemPrompt: string = '';
+  private counselorName: string = '';
 
   constructor() {
     // Create the audio element and explicitly add it to the DOM
@@ -51,11 +52,12 @@ export class RealtimeChat {
     }
   }
 
-  async start(onMessage: (event: any) => void, voiceId: string, systemPrompt: string) {
+  async start(onMessage: (event: any) => void, voiceId: string, systemPrompt: string, counselorName: string) {
     try {
       console.log('Starting realtime chat with voice:', voiceId);
       console.log('Using system prompt:', systemPrompt);
       this.systemPrompt = systemPrompt;
+      this.counselorName = counselorName;
       const ephemeralKey = await this.getEphemeralToken(voiceId);
       this.onMessageCallback = onMessage;
 
@@ -140,13 +142,18 @@ export class RealtimeChat {
           console.log('Data channel opened successfully!');
           onMessage({ type: 'datachannel', status: 'open' });
           
-          // Send initial message with the counselor's system prompt
+          // Send initial message with counselor system prompt
           console.log('Sending initial instructions with counselor system prompt');
+          
+          // Get the counselor name from the first part of the system prompt
+          const counselorNameMatch = this.systemPrompt.match(/You are ([^,]+)/);
+          const counselorName = counselorNameMatch ? counselorNameMatch[1] : "your counselor";
+          
           this.sendMessage({
             type: "response.create",
             response: {
               modalities: ["text", "audio"],
-              instructions: this.systemPrompt,
+              instructions: this.systemPrompt + "\nYour first response must only be: Hello! I'm " + counselorName + ". How can I help you today?"
             },
           });
         };
