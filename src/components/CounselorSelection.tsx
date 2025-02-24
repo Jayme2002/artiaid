@@ -17,6 +17,13 @@ export default function CounselorSelection({
 }: CounselorSelectionProps) {
   const handleSelectCounselor = (counselor: any) => {
     // Directly call the parent handler to start the session
+    console.log('CounselorSelection: handleSelectCounselor called with counselor:', counselor);
+    
+    if (typeof onSelectCounselor !== 'function') {
+      console.error('onSelectCounselor is not a function:', onSelectCounselor);
+      return;
+    }
+    
     onSelectCounselor(counselor);
   };
 
@@ -46,6 +53,7 @@ export default function CounselorSelection({
           <div
             key={counselor.id}
             className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="aspect-w-1 aspect-h-1 relative">
               <img
@@ -69,7 +77,12 @@ export default function CounselorSelection({
                 </span>
               </div>
               <button
-                onClick={() => handleSelectCounselor(counselor)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Start Session button clicked for counselor:', counselor);
+                  handleSelectCounselor(counselor);
+                }}
                 className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Start Session

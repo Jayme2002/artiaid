@@ -40,8 +40,10 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
   const audioElement = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    console.log('SessionInterface mounted with counselor:', counselor ? counselor.name : 'none');
     startNewSession();
     return () => {
+      console.log('SessionInterface unmounting, cleaning up...');
       endCurrentSession();
     };
   }, []);
@@ -67,6 +69,7 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
 
   const startNewSession = async () => {
     try {
+      console.log('Starting new session with counselor:', counselor.name);
       const { data, error } = await supabase
         .from('sessions')
         .insert({
@@ -77,7 +80,12 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting session record:', error);
+        throw error;
+      }
+      
+      console.log('Session created in database with ID:', data.id);
       setSessionId(data.id);
 
       // Add welcome message
@@ -169,19 +177,34 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
   };
 
   const endCurrentSession = async () => {
+    console.log('Ending current session. SessionId:', sessionId);
     if (sessionId) {
-      const endTime = new Date();
-      await supabase
-        .from('sessions')
-        .update({
-          ended_at: endTime.toISOString(),
-          duration: `${Math.floor((endTime.getTime() - sessionStartTime.current.getTime()) / 1000)} seconds`,
-          notes: sessionNotes
-        })
-        .eq('id', sessionId);
+      try {
+        const endTime = new Date();
+        const updateResult = await supabase
+          .from('sessions')
+          .update({
+            ended_at: endTime.toISOString(),
+            duration: `${Math.floor((endTime.getTime() - sessionStartTime.current.getTime()) / 1000)} seconds`,
+            notes: sessionNotes
+          })
+          .eq('id', sessionId);
+          
+        console.log('Session update result:', updateResult);
+      } catch (error) {
+        console.error('Error updating session end time:', error);
+      }
     }
     
     stopChat();
+    // Don't immediately call onEndSession here, as it could cause a redirect during cleanup
+    // Instead, only call it when explicitly ending a session via a user action
+  };
+  
+  // Add a separate function for user-initiated session end
+  const handleUserEndSession = () => {
+    console.log('User ended session');
+    endCurrentSession();
     onEndSession();
   };
 
@@ -423,7 +446,7 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
               <span>Share Session</span>
             </button>
             <button
-              onClick={endCurrentSession}
+              onClick={handleUserEndSession}
               className="w-full flex items-center justify-center space-x-2 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
               <X className="w-4 h-4" />
