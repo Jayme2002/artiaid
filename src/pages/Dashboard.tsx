@@ -1,27 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, AlertCircle, UserCircle, LogOut, Plus } from 'lucide-react';
+import { 
+  Settings, 
+  AlertCircle, 
+  UserCircle, 
+  LogOut, 
+  Plus,
+  Calendar,
+  Clock,
+  Activity,
+  BookOpen,
+  PlayCircle,
+  Award,
+  Target
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import SessionInterface from '../components/SessionInterface';
 import DashboardOverview from '../components/DashboardOverview';
 import CustomCounselorForm from '../components/CustomCounselorForm';
+import CounselorSelection from '../components/CounselorSelection';
 import { personalities, approaches } from '../lib/counselorConstants';
 
 interface DashboardProps {
   session: any;
 }
 
+type DashboardView = 'main' | 'counselorSelect' | 'createCounselor' | 'session';
+
 export default function Dashboard({ session }: DashboardProps) {
-  const [activeSession, setActiveSession] = useState(false);
+  const [currentView, setCurrentView] = useState<DashboardView>('main');
   const [selectedCounselor, setSelectedCounselor] = useState<any>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [customCounselors, setCustomCounselors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recentSessions, setRecentSessions] = useState<any[]>([]);
 
   useEffect(() => {
     fetchCounselors();
+    fetchRecentSessions();
   }, [session.user.id]);
+
+  const fetchRecentSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select(`
+          *,
+          chat_messages (
+            content,
+            role,
+            created_at
+          )
+        `)
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setRecentSessions(data || []);
+    } catch (error) {
+      console.error('Error fetching recent sessions:', error);
+    }
+  };
 
   const fetchCounselors = async () => {
     try {
@@ -34,7 +74,6 @@ export default function Dashboard({ session }: DashboardProps) {
 
       if (error) throw error;
 
-      // Add avatar URL to each counselor
       const counselorsWithAvatars = data.map(counselor => ({
         ...counselor,
         avatar: `https://api.dicebear.com/7.x/${counselor.avatar_style}/svg?seed=${counselor.avatar_seed}`
@@ -55,12 +94,12 @@ export default function Dashboard({ session }: DashboardProps) {
 
   const startSession = (counselor: any) => {
     setSelectedCounselor(counselor);
-    setActiveSession(true);
+    setCurrentView('session');
   };
 
   const endSession = () => {
-    setActiveSession(false);
     setSelectedCounselor(null);
+    setCurrentView('main');
   };
 
   const handleCreateCounselor = async (counselor: any) => {
@@ -86,14 +125,13 @@ export default function Dashboard({ session }: DashboardProps) {
 
       if (error) throw error;
 
-      // Add avatar URL to the new counselor
       const counselorWithAvatar = {
         ...data,
         avatar: `https://api.dicebear.com/7.x/${data.avatar_style}/svg?seed=${data.avatar_seed}`
       };
 
       setCustomCounselors([counselorWithAvatar, ...customCounselors]);
-      setShowCreateForm(false);
+      setCurrentView('main');
     } catch (error: any) {
       console.error('Error creating counselor:', error);
       setError('Failed to create counselor. Please try again.');
@@ -116,6 +154,188 @@ export default function Dashboard({ session }: DashboardProps) {
     } catch (error: any) {
       console.error('Error deleting counselor:', error);
       setError('Failed to delete counselor. Please try again.');
+    }
+  };
+
+  const renderMainContent = () => (
+    <div className="space-y-8 py-8">
+      <DashboardOverview session={session} />
+      
+      {/* Start Session Button */}
+      <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+        {loading ? (
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        ) : customCounselors.length === 0 ? (
+          <div>
+            <div className="flex justify-center">
+              <Plus className="w-16 h-16 text-blue-600" />
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-gray-900">Welcome to Artiaid</h2>
+            <p className="mt-2 text-gray-600 max-w-md mx-auto">
+              Create your first custom counselor to begin your therapeutic journey
+            </p>
+            <button
+              onClick={() => setCurrentView('createCounselor')}
+              className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg"
+            >
+              Create Your First Counselor
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="flex justify-center">
+              <PlayCircle className="w-16 h-16 text-blue-600" />
+            </div>
+            <h2 className="mt-4 text-2xl font-bold text-gray-900">Ready for Your Session?</h2>
+            <p className="mt-2 text-gray-600 max-w-md mx-auto">
+              Start a new counseling session with one of your custom counselors
+            </p>
+            <button
+              onClick={() => setCurrentView('counselorSelect')}
+              className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg"
+            >
+              Start Session
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Sessions */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Recent Sessions</h2>
+          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            View All
+          </button>
+        </div>
+        <div className="space-y-4">
+          {recentSessions.map((session, index) => (
+            <div key={session.id} className="border-b last:border-0 pb-4 last:pb-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">{session.counselor_name}</h3>
+                    <p className="text-sm text-gray-600">
+                      {new Date(session.started_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-sm text-gray-600">
+                  {session.duration ? session.duration.replace('seconds', 's') : 'Ongoing'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resources and Goals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Recommended Resources</h2>
+            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              Browse All
+            </button>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              <div>
+                <h3 className="font-medium text-gray-900">Mindfulness Guide</h3>
+                <p className="text-sm text-gray-600">10-minute daily practice</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+              <Award className="w-5 h-5 text-purple-600" />
+              <div>
+                <h3 className="font-medium text-gray-900">Stress Management</h3>
+                <p className="text-sm text-gray-600">Practical techniques</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Your Goals</h2>
+            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              Set New Goal
+            </button>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Activity className="w-5 h-5 text-green-600" />
+                <div>
+                  <h3 className="font-medium text-gray-900">Reduce Anxiety</h3>
+                  <p className="text-sm text-gray-600">2 sessions per week</p>
+                </div>
+              </div>
+              <span className="text-sm font-medium text-green-600">75%</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Target className="w-5 h-5 text-orange-600" />
+                <div>
+                  <h3 className="font-medium text-gray-900">Better Sleep</h3>
+                  <p className="text-sm text-gray-600">Practice mindfulness</p>
+                </div>
+              </div>
+              <span className="text-sm font-medium text-orange-600">40%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (currentView) {
+      case 'session':
+        return (
+          <SessionInterface
+            counselor={selectedCounselor}
+            onEndSession={endSession}
+            session={session}
+          />
+        );
+      case 'createCounselor':
+        return (
+          <div className="py-8">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Create Your Custom Counselor</h2>
+              <button
+                onClick={() => setCurrentView('main')}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+            </div>
+            <CustomCounselorForm 
+              onCreateCounselor={(counselor) => {
+                handleCreateCounselor(counselor);
+                setCurrentView('main');
+              }} 
+            />
+          </div>
+        );
+      case 'counselorSelect':
+        return (
+          <div className="py-8">
+            <CounselorSelection
+              counselors={customCounselors}
+              onSelectCounselor={startSession}
+              onCreateNew={() => setCurrentView('createCounselor')}
+              onBack={() => setCurrentView('main')}
+            />
+          </div>
+        );
+      default:
+        return renderMainContent();
     }
   };
 
@@ -166,119 +386,7 @@ export default function Dashboard({ session }: DashboardProps) {
       </header>
 
       <main className="pt-16 px-4 max-w-7xl mx-auto">
-        {activeSession ? (
-          <SessionInterface
-            counselor={selectedCounselor}
-            onEndSession={endSession}
-            session={session}
-          />
-        ) : showCreateForm ? (
-          <div className="py-8">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Create Your Custom Counselor</h2>
-              <button
-                onClick={() => setShowCreateForm(false)}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Cancel
-              </button>
-            </div>
-            <CustomCounselorForm onCreateCounselor={handleCreateCounselor} />
-          </div>
-        ) : (
-          <div className="space-y-8 py-8">
-            <DashboardOverview session={session} />
-            
-            {/* Custom Counselors Section */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Your Custom Counselors</h2>
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Create New</span>
-                </button>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Loading your counselors...</p>
-                </div>
-              ) : customCounselors.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed">
-                  <div className="flex justify-center">
-                    <Plus className="w-12 h-12 text-gray-400" />
-                  </div>
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">No custom counselors yet</h3>
-                  <p className="mt-2 text-gray-600">
-                    Create your first custom counselor tailored to your needs
-                  </p>
-                  <button
-                    onClick={() => setShowCreateForm(true)}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Create Counselor
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {customCounselors.map((counselor) => (
-                    <div
-                      key={counselor.id}
-                      className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-                    >
-                      <div className="aspect-w-1 aspect-h-1 relative">
-                        <img
-                          src={counselor.avatar}
-                          alt={counselor.name}
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <h3 className="text-xl font-semibold text-white">{counselor.name}</h3>
-                          <p className="text-white/80">{counselor.specialty}</p>
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-sm text-gray-600">
-                            {personalities.find(p => p.id === counselor.personality)?.label}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {approaches.find(a => a.id === counselor.approach)?.label}
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          <button
-                            onClick={() => startSession(counselor)}
-                            className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                          >
-                            Start Session
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCounselor(counselor.id)}
-                            className="w-full py-2 text-red-600 hover:bg-red-50 rounded-lg border border-red-200"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {renderContent()}
       </main>
     </div>
   );

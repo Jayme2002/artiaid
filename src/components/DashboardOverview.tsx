@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Activity } from 'lucide-react';
+import { TrendingUp, MessageSquare, Clock, Target } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface DashboardOverviewProps {
@@ -8,63 +8,15 @@ interface DashboardOverviewProps {
 
 export default function DashboardOverview({ session }: DashboardOverviewProps) {
   const firstName = session?.user?.user_metadata?.first_name || 'there';
-  const [metrics, setMetrics] = useState({
-    lastSession: 'No sessions yet',
-    totalSessions: 0,
-    totalTime: '0 hours'
+  const [insights, setInsights] = useState({
+    weeklyProgress: 75,
+    sessionsThisWeek: 3,
+    totalMinutes: 120,
+    streakDays: 5
   });
 
-  useEffect(() => {
-    const fetchSessionMetrics = async () => {
-      // Get total sessions count
-      const { count } = await supabase
-        .from('sessions')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', session.user.id);
-
-      // Get last session
-      const { data: lastSession } = await supabase
-        .from('sessions')
-        .select('started_at')
-        .eq('user_id', session.user.id)
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      // Get total duration
-      const { data: sessions } = await supabase
-        .from('sessions')
-        .select('duration')
-        .eq('user_id', session.user.id);
-
-      let totalSeconds = 0;
-      sessions?.forEach(session => {
-        if (session.duration) {
-          // Parse the interval string to seconds
-          const durationMatch = session.duration.match(/(\d+) seconds/);
-          if (durationMatch) {
-            totalSeconds += parseInt(durationMatch[1]);
-          }
-        }
-      });
-
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-      setMetrics({
-        lastSession: lastSession ? new Date(lastSession.started_at).toLocaleString() : 'No sessions yet',
-        totalSessions: count || 0,
-        totalTime: `${hours}h ${minutes}m`
-      });
-    };
-
-    if (session?.user?.id) {
-      fetchSessionMetrics();
-    }
-  }, [session?.user?.id]);
-
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
+    <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-900">
           Welcome back, {firstName}
@@ -74,35 +26,49 @@ export default function DashboardOverview({ session }: DashboardOverviewProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-blue-50 rounded-lg p-4 flex items-center space-x-4">
-          <div className="bg-blue-100 p-2 rounded-lg">
-            <Calendar className="w-6 h-6 text-blue-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-purple-600" />
+            </div>
+            <span className="text-2xl font-bold text-purple-600">{insights.weeklyProgress}%</span>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Last Session</p>
-            <p className="font-semibold text-gray-900">{metrics.lastSession}</p>
-          </div>
+          <h3 className="font-medium text-gray-900">Weekly Progress</h3>
+          <p className="text-sm text-gray-600 mt-1">Based on session goals</p>
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-4 flex items-center space-x-4">
-          <div className="bg-blue-100 p-2 rounded-lg">
-            <Activity className="w-6 h-6 text-blue-600" />
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <MessageSquare className="w-6 h-6 text-blue-600" />
+            </div>
+            <span className="text-2xl font-bold text-blue-600">{insights.sessionsThisWeek}</span>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Total Sessions</p>
-            <p className="font-semibold text-gray-900">{metrics.totalSessions}</p>
-          </div>
+          <h3 className="font-medium text-gray-900">Sessions This Week</h3>
+          <p className="text-sm text-gray-600 mt-1">Keep up the momentum</p>
         </div>
 
-        <div className="bg-blue-50 rounded-lg p-4 flex items-center space-x-4">
-          <div className="bg-blue-100 p-2 rounded-lg">
-            <Clock className="w-6 h-6 text-blue-600" />
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Clock className="w-6 h-6 text-green-600" />
+            </div>
+            <span className="text-2xl font-bold text-green-600">{insights.totalMinutes}m</span>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Total Time</p>
-            <p className="font-semibold text-gray-900">{metrics.totalTime}</p>
+          <h3 className="font-medium text-gray-900">Total Time</h3>
+          <p className="text-sm text-gray-600 mt-1">Minutes in therapy</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <Target className="w-6 h-6 text-orange-600" />
+            </div>
+            <span className="text-2xl font-bold text-orange-600">{insights.streakDays}</span>
           </div>
+          <h3 className="font-medium text-gray-900">Day Streak</h3>
+          <p className="text-sm text-gray-600 mt-1">Consecutive days active</p>
         </div>
       </div>
     </div>
