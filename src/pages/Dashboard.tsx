@@ -10,9 +10,9 @@ import {
   Clock,
   Activity,
   BookOpen,
-  PlayCircle,
   Award,
-  Target
+  Target,
+  PlayCircle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import DashboardOverview from '../components/DashboardOverview';
@@ -32,11 +32,9 @@ export default function Dashboard({ session }: DashboardProps) {
   const [error, setError] = useState<string | null>(null);
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
 
-  // Check if we need to show the create counselor form based on the location state
   useLayoutEffect(() => {
     if (location.state && (location.state as any).createCounselor) {
       setShowCreateCounselor(true);
-      // Clean up the state
       window.history.replaceState({}, document.title);
     }
   }, [location]);
@@ -134,25 +132,6 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   };
 
-  const handleDeleteCounselor = async (counselorId: string) => {
-    if (!window.confirm('Are you sure you want to delete this counselor?')) return;
-
-    try {
-      setError(null);
-      const { error } = await supabase
-        .from('counselors')
-        .delete()
-        .eq('id', counselorId);
-
-      if (error) throw error;
-
-      setCustomCounselors(customCounselors.filter(c => c.id !== counselorId));
-    } catch (error: any) {
-      console.error('Error deleting counselor:', error);
-      setError('Failed to delete counselor. Please try again.');
-    }
-  };
-
   const renderContent = () => {
     if (showCreateCounselor) {
       return (
@@ -179,7 +158,7 @@ export default function Dashboard({ session }: DashboardProps) {
           <DashboardOverview session={session} />
           
           {/* Start Session Button */}
-          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+          <div className="glass-effect rounded-xl p-8 text-center">
             {loading ? (
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             ) : customCounselors.length === 0 ? (
@@ -193,7 +172,7 @@ export default function Dashboard({ session }: DashboardProps) {
                 </p>
                 <button
                   onClick={() => setShowCreateCounselor(true)}
-                  className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg"
+                  className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 text-lg transform hover:-translate-y-1 transition-all duration-200"
                 >
                   Create Your First Counselor
                 </button>
@@ -209,7 +188,7 @@ export default function Dashboard({ session }: DashboardProps) {
                 </p>
                 <button
                   onClick={navigateToSelectCounselor}
-                  className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg"
+                  className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 text-lg transform hover:-translate-y-1 transition-all duration-200"
                 >
                   Start Session
                 </button>
@@ -217,8 +196,67 @@ export default function Dashboard({ session }: DashboardProps) {
             )}
           </div>
 
+          {/* Resources and Goals Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="glass-effect rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Recommended Resources</h2>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  Browse All
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 p-3 bg-blue-50/50 rounded-lg hover:bg-blue-50/80 transition-colors">
+                  <BookOpen className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <h3 className="font-medium text-gray-900">Mindfulness Guide</h3>
+                    <p className="text-sm text-gray-600">10-minute daily practice</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-purple-50/50 rounded-lg hover:bg-purple-50/80 transition-colors">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  <div>
+                    <h3 className="font-medium text-gray-900">Stress Management</h3>
+                    <p className="text-sm text-gray-600">Practical techniques</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-effect rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Your Goals</h2>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  Set New Goal
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-green-50/50 rounded-lg hover:bg-green-50/80 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Activity className="w-5 h-5 text-green-600" />
+                    <div>
+                      <h3 className="font-medium text-gray-900">Reduce Anxiety</h3>
+                      <p className="text-sm text-gray-600">2 sessions per week</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-green-600">75%</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-orange-50/50 rounded-lg hover:bg-orange-50/80 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Target className="w-5 h-5 text-orange-600" />
+                    <div>
+                      <h3 className="font-medium text-gray-900">Better Sleep</h3>
+                      <p className="text-sm text-gray-600">Practice mindfulness</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-orange-600">40%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Recent Sessions */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="glass-effect rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Sessions</h2>
               <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
@@ -226,11 +264,11 @@ export default function Dashboard({ session }: DashboardProps) {
               </button>
             </div>
             <div className="space-y-4">
-              {recentSessions.map((session, index) => (
+              {recentSessions.map((session) => (
                 <div key={session.id} className="border-b last:border-0 pb-4 last:pb-0">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-gray-100 rounded-lg">
+                      <div className="p-2 bg-gray-100/50 rounded-lg">
                         <Calendar className="w-5 h-5 text-gray-600" />
                       </div>
                       <div>
@@ -246,65 +284,6 @@ export default function Dashboard({ session }: DashboardProps) {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Resources and Goals */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Recommended Resources</h2>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Browse All
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                  <BookOpen className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">Mindfulness Guide</h3>
-                    <p className="text-sm text-gray-600">10-minute daily practice</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-                  <Award className="w-5 h-5 text-purple-600" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">Stress Management</h3>
-                    <p className="text-sm text-gray-600">Practical techniques</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Your Goals</h2>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Set New Goal
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Activity className="w-5 h-5 text-green-600" />
-                    <div>
-                      <h3 className="font-medium text-gray-900">Reduce Anxiety</h3>
-                      <p className="text-sm text-gray-600">2 sessions per week</p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-medium text-green-600">75%</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Target className="w-5 h-5 text-orange-600" />
-                    <div>
-                      <h3 className="font-medium text-gray-900">Better Sleep</h3>
-                      <p className="text-sm text-gray-600">Practice mindfulness</p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-medium text-orange-600">40%</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
