@@ -43,7 +43,6 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionDuration, setSessionDuration] = useState<string>('00:00');
   const [showSidebar, setShowSidebar] = useState(true);
-  const [sessionNotes, setSessionNotes] = useState<string>('');
   const sessionStartTime = useRef<Date>(new Date());
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<string>('Ready');
@@ -343,7 +342,6 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
           .update({
             ended_at: endTime.toISOString(),
             duration: `${Math.floor((endTime.getTime() - sessionStartTime.current.getTime()) / 1000)} seconds`,
-            notes: sessionNotes
           })
           .eq('id', sessionId);
           
@@ -413,7 +411,7 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
       .map(m => `[${m.timestamp.toLocaleString()}] ${m.type}: ${m.content}`)
       .join('\n\n');
     
-    const fullLog = `Session with ${counselor.name}\nDate: ${sessionStartTime.current.toLocaleString()}\nDuration: ${sessionDuration}\n\nSession Notes:\n${sessionNotes}`;
+    const fullLog = `Session with ${counselor.name}\nDate: ${sessionStartTime.current.toLocaleString()}\nDuration: ${sessionDuration}`;
     
     const blob = new Blob([fullLog], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -429,18 +427,16 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
   return (
     <div className="h-[calc(100vh-4rem)] flex bg-gray-50">
       {/* Main Session Area */}
-      <div className="flex-1 flex flex-col bg-white rounded-l-xl shadow-sm">
+      <div className="flex-1 flex flex-col bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="border-b p-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="border-b p-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center space-x-4">
-            <img
-              src={counselor.avatar}
-              alt={counselor.name}
-              className="w-12 h-12 rounded-full border-2 border-blue-200"
-            />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-r from-blue-200 to-indigo-200 border-2 border-white shadow-md">
+              <FileText className="w-6 h-6 text-white" />
+            </div>
             <div>
               <h2 className="font-semibold text-gray-900 text-lg">{counselor.name}</h2>
-              <p className="text-sm text-gray-600">{counselor.specialty}</p>
+              <p className="text-sm text-gray-600">Using {counselor.voice} voice</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -460,137 +456,134 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-b from-white to-blue-50">
           {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-start space-x-2 mb-6 max-w-md">
+            <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-start space-x-2 mb-6 max-w-md shadow-sm border border-red-100">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <p className="text-sm">{error}</p>
             </div>
           )}
           
-          <div className="text-center mb-8">
-            <div className="mb-4">
-              <img 
-                src={counselor.avatar} 
-                alt={counselor.name} 
-                className="w-32 h-32 rounded-full mx-auto border-4 border-blue-100 shadow-lg"
-              />
+          <div className="text-center mb-10">
+            <div className="mb-6">
+              <div className="w-28 h-28 rounded-full mx-auto flex items-center justify-center bg-gradient-to-r from-blue-400 to-indigo-500 border-4 border-white shadow-lg">
+                <FileText className="w-14 h-14 text-white" />
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Voice Session with {counselor.name}</h1>
-            <p className="text-gray-600 max-w-md mx-auto">{counselor.description || `${counselor.name} specializes in ${counselor.specialty}.`}</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-3">{counselor.name}</h1>
+            <p className="text-lg text-gray-600 max-w-md mx-auto">AI-assisted counseling with {counselor.voice} voice</p>
           </div>
           
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Session Status</h3>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                status === 'Active' ? 'bg-green-100 text-green-800' :
-                status === 'Error' ? 'bg-red-100 text-red-800' :
-                'bg-blue-100 text-blue-800'
+          <div className="bg-white rounded-xl shadow-md p-6 mb-8 w-full max-w-md border border-gray-100">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-semibold text-gray-800 text-lg">Session Status</h3>
+              <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
+                status === 'Active' ? 'bg-green-100 text-green-700 border border-green-200' :
+                status === 'Error' ? 'bg-red-100 text-red-700 border border-red-200' :
+                status === 'Paused' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                'bg-blue-100 text-blue-700 border border-blue-200'
               }`}>
                 {status}
               </span>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <p className="text-sm text-gray-500 mb-1">Duration</p>
-                <p className="font-medium text-gray-800">{sessionDuration}</p>
+                <p className="font-medium text-gray-800 text-lg">{sessionDuration}</p>
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <p className="text-sm text-gray-500 mb-1">Audio</p>
-                <p className="font-medium text-gray-800">{isMuted ? 'Muted' : `Volume: ${Math.round(volume * 100)}%`}</p>
+                <p className="font-medium text-gray-800 text-lg">{isMuted ? 'Muted' : `${Math.round(volume * 100)}%`}</p>
               </div>
+            </div>
+            
+            <div className="space-y-4">
+              <button
+                onClick={isActive && !isPaused ? pauseChat : startChat}
+                disabled={isProcessing}
+                className={`w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl ${
+                  isActive && !isPaused
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white' 
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white'
+                } transition-colors shadow-md disabled:opacity-70 text-lg font-medium`}
+              >
+                {isActive && !isPaused ? <PauseCircle className="w-6 h-6" /> : 
+                 isPaused ? <PlayCircle className="w-6 h-6" /> : 
+                 <Mic className="w-6 h-6" />}
+                <span>
+                  {isProcessing ? 'Starting...' : 
+                   isActive && !isPaused ? 'Pause Session' : 
+                   isPaused ? 'Resume Session' : 
+                   'Begin Session'}
+                </span>
+              </button>
             </div>
           </div>
           
-          <div className="w-full max-w-md">
-            <button
-              onClick={isActive && !isPaused ? pauseChat : startChat}
-              disabled={isProcessing}
-              className={`w-full flex items-center justify-center space-x-3 py-3 px-6 rounded-xl ${
-                isActive && !isPaused
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              } transition-colors shadow-md disabled:opacity-70`}
-            >
-              {isActive && !isPaused ? <PauseCircle className="w-5 h-5" /> : 
-               isPaused ? <PlayCircle className="w-5 h-5" /> : 
-               <Mic className="w-5 h-5" />}
-              <span className="font-medium">
-                {isProcessing ? 'Starting...' : 
-                 isActive && !isPaused ? 'Pause Session' : 
-                 isPaused ? 'Resume Session' : 
-                 'Begin Session'}
-              </span>
-            </button>
-            
-            {isActive && (
-              <div className="flex justify-between mt-4">
-                <div className="flex items-center bg-white p-3 rounded-lg shadow-sm flex-grow mr-2">
-                  <button
-                    onClick={toggleMute}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                  >
-                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                  </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={volume}
-                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                    className="w-full mx-2"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{Math.round(volume * 100)}%</span>
-                </div>
-                
+          {isActive && (
+            <div className="flex justify-between w-full max-w-md bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+              <div className="flex items-center flex-grow mr-4">
                 <button
-                  onClick={stopChat}
-                  className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg shadow-sm flex items-center justify-center"
-                  title="End Session"
+                  onClick={toggleMute}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
-                  <MicOff className="w-5 h-5" />
+                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={volume}
+                  onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                  className="w-full mx-2"
+                />
+                <span className="text-sm font-medium text-gray-700">{Math.round(volume * 100)}%</span>
               </div>
-            )}
-          </div>
+              
+              <button
+                onClick={stopChat}
+                className="bg-red-500 hover:bg-red-600 text-white p-3 rounded-lg shadow-sm flex items-center justify-center"
+                title="End Session"
+              >
+                <MicOff className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-80 bg-white p-5 rounded-r-xl border-l space-y-6">
+        <div className="w-80 bg-white p-6 rounded-r-xl border-l space-y-6 shadow-lg">
           {/* Session Info */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">About Your Counselor</h3>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-3">{counselor.bio || counselor.description || `${counselor.name} is an experienced counselor specializing in ${counselor.specialty}.`}</p>
-              <div className="text-sm text-gray-600">
-                <div className="flex items-center justify-between mb-2">
-                  <span>Specialty</span>
-                  <span className="font-medium">{counselor.specialty}</span>
+            <h3 className="font-semibold text-gray-900 mb-4 text-lg">About Your Session</h3>
+            <div className="bg-gray-50 p-5 rounded-lg border border-gray-100">
+              <p className="text-gray-600 mb-4">This is an AI-assisted counseling session tailored to provide supportive guidance for {counselor.name.toLowerCase()}.</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                  <span className="text-gray-600">Type</span>
+                  <span className="font-medium text-gray-900">{counselor.name}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Experience</span>
-                  <span className="font-medium">{counselor.experience || "5+ years"}</span>
+                <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                  <span className="text-gray-600">Voice</span>
+                  <span className="font-medium text-gray-900">{counselor.voice}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-gray-600">Status</span>
+                  <span className={`font-medium ${
+                    status === 'Active' ? 'text-green-600' :
+                    status === 'Error' ? 'text-red-600' :
+                    status === 'Paused' ? 'text-amber-600' : 
+                    'text-blue-600'
+                  }`}>{status}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Session Notes */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Session Notes</h3>
-            <textarea
-              value={sessionNotes}
-              onChange={(e) => setSessionNotes(e.target.value)}
-              placeholder="Add your personal notes about this session..."
-              className="w-full h-40 p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 bg-white"
-            />
-          </div>
-
           {/* Actions */}
-          <div className="space-y-3 pt-3">
+          <div className="pt-4 space-y-3 mt-auto">
             <button
               onClick={downloadSessionLog}
               className="w-full flex items-center justify-center space-x-2 p-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
@@ -600,7 +593,7 @@ export default function SessionInterface({ counselor, onEndSession, session }: S
             </button>
             <button
               onClick={handleUserEndSession}
-              className="w-full flex items-center justify-center space-x-2 p-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-colors"
             >
               <X className="w-4 h-4" />
               <span>End Session</span>

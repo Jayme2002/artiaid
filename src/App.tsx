@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { supabase } from './lib/supabase';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
-import CounselorSelectionPage from './pages/CounselorSelectionPage';
 import SessionPage from './pages/SessionPage';
 
 // The location hook can only be used inside Router, so create a wrapper
@@ -30,13 +29,7 @@ function AppRoutes({ session }: { session: any }) {
         }
       />
       <Route
-        path="/select-counselor"
-        element={
-          session ? <CounselorSelectionPage session={session} /> : <Navigate to="/" replace />
-        }
-      />
-      <Route
-        path="/session/:counselorId"
+        path="/session"
         element={
           session ? <SessionPage session={session} /> : <Navigate to="/" replace />
         }
